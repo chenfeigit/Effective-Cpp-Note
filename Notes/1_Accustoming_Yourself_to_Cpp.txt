@@ -1,0 +1,83 @@
+1. View C++ as a federation of languages.
+
+现代C++是一种多重泛型编程语言 multiparadigm programming language
+
+现代C++的特性:
+面向过程 procedural
+面向对象 object-oriented
+函数式 functional
+泛型 generic
+元编程 metaprogramming
+
+C++的四个次语言:
+(1) C
+(2) C with Classes
+(3) Template C++
+(4) STL
+
+2. Perfer consts, enums, and inlines to #defines.
+(Prefer the compiler to the preprocessor)
+
+#define是C++中的宏定义命令
+
+A.使用#define定义常量,比如
+#define ASPECT_RATIO 1.653
+
+使用#define来定义常量的缺点:
+(1)由宏预定义的符号名称ASPECT_RATIO对于编译器是不可见的.当你在debug模式下跟踪一段代码,或者捕获编译错误信息时,能够得到的只是被替换的值1.653而不是符号ASPECT_RATIO.
+(2)对于浮点数而言,预处理器盲目地将宏ASPECT_RATIO替换为1.653,就有可能导致目标吗出现多份1.653.比如使用#define定义了PI而在某段函数中需要频繁地直接使用到PI时,生成目标码中随处可见3.14159会造成许多不必要的内存浪费.
+(3)#define无法控制其所定义的常量的作用域.一旦宏被定义,在它被#undef之前,在编译过程中它将始终是全局有效的.
+
+尽量使用const定义常量则可以避免以上问题.
+
+class内的常量通常同时需要声明(在.h文件)和定义(在.cpp文件),该常量通常在定义式中被赋予初值.
+在.h文件内:
+class CostEstimate {
+private:
+    static const double FudgeFactor;                //static class常量声明
+}
+在.cpp文件内:
+const double CostEstimate::FundgeFactor = 1.35;     //static class常量定义
+
+如果编译期间需要一个class常量值呢?一个典型的例子是将它用于声明数组的大小.
+(1)对于一个class内的静态整型常量(in-class static const int/char/bool),可以在其声明时直接初始化而无须提供定义式.比如:(in VS2017)
+class GamePlayer {
+private:
+    static const int NumTurns = 1;
+    int scores[NumTurns];
+}
+(2)enum hack做法:将枚举类型的数值当作整型int来使用.
+class GamePlayer {
+private:
+    enum {NumTurns = 5};
+    int scores[NumTurns];                       //Okey
+}
+但是enum hack更像#define而不像const:enum不能被取地址,且不会占内存空间.
+
+B.使用#define可以实现宏(macros)
+尽量使用template inline函数来替代它.
+
+3. Use const whenever possible.
+
+const在*左边修饰被指对象,表示被指对象是常量;const在*右边修饰指针,表示指针是常量.
+char greeting[] = "hello";
+const char* p = greeting;           //non-const pointer, const data
+char* const p = greeting;           //const pointer, non-const data
+const char* const p = greeting;     //const pointer, const data
+const在类型之前和类型之后的写法是等价的.
+const Widget *pw;
+Widget const *pw;       //等价的写法
+
+在STL迭代器中,iterator相当于T*指针,声明iterator为const相当于声明指针为const,迭代器不可以被改动.如果希望迭代器所指的对象不可被改动,需要使用const_iterator.
+const std::vector<int>::iterator iter;      //iter为常量,iter++非法
+std::vector<int>const_iterator iter;        //*iter为常量,*iter++非法
+
+const int increase(int a);      //const修饰函数返回值,可以避免函数返回值被重新赋值,比如(a * b) = c
+int increase(const int a);      //const修饰函数参数,避免参数被更改
+int increase(int a) const;      //const修饰类成员函数,非类成员函数不能使用const限定符
+
+const修饰的成员函数可以作用于const对象,不会改变对象内容.
+
+logical constness和bitwise constness
+
+常量性转除(casting away constness)
