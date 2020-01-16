@@ -11,3 +11,15 @@ public:
     ~Empty() { ... }
     Empty& operator=(const Empty& rhs) { ... }
 }
+
+(1)对于内含reference成员或者内含const的class,如果想要支持赋值操作则必须自己定义copy assignment操作符.
+(2)如果基类的copy assignment操作符为private,编译器拒绝为其派生类生成copy assignment操作符.
+
+6. Explicitly disallow the use of compiler-generated functions you do not want.
+
+如果不希望某个class支持copy构造或赋值操作,有两种方法:
+(1)将其copy构造函数或copy assignment操作符声明为private并且不实现其定义.这种情况下当有人试图通过成员函数或友元函数调用该方法会得到linkage error.
+(2)继承一个Uncopyable类,该Uncopyable类当中声明copy构造函数或copy assignment操作符为private.当基类试图调用copy构造或赋值方法时,会首先调用基类对应方法,从而在编译期报告错误.
+
+7. Declare destructors virtual in polymorphic base classes.
+
