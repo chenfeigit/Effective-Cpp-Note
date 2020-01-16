@@ -1,0 +1,13 @@
+5. Know what functions C++ silently writes and calls.
+
+如果没有在类当中手动声明,编译器静默会为类声明默认构造函数(不存在其他构造函数时)/copy构造函数/copy赋值操作符/析构函数.
+比如当你声明一个空类:
+class Empty {};
+编译器会默认帮你生成这些成员函数:
+class Empty {
+public:
+    Empty() { ... }
+    Empty(const Empty& rhs) { ... }
+    ~Empty() { ... }
+    Empty& operator=(const Empty& rhs) { ... }
+}

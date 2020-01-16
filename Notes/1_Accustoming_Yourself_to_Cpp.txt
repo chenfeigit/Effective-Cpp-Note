@@ -79,5 +79,29 @@ int increase(int a) const;      //const修饰类成员函数,非类成员函数�
 const修饰的成员函数可以作用于const对象,不会改变对象内容.
 
 logical constness和bitwise constness
+编译器强制实施bitwise constness,
 
+mutable关键字,释放掉non-static成员变量的bitwise constness约束
+
+两个成员函数如果只是常量性(constness)不同,可以被重载.
 常量性转除(casting away constness)
+static_cast和const_cast
+
+4. Make sure that objects are initialized before they're used.
+使用构造函数进行赋值和初始化.
+类构造函数一个较佳的写法是,使用member initialization list进行类成员变量初始化,而非使用其默认构造函数初始化继而手动赋值.
+
+ABEntry::ABEntry(const string& name)
+    :theName(name)                      //initialization, copy ctor called
+{ }
+
+ABEntry::ABEntry(const string& name)
+{
+    theName = name;                     //assignment, default ctor has been called before this
+}
+
+C++有固定的成员初始化次序:基类更早于派生类被初始化,类的成员变量以其声明次序被初始化,成员初值列中的出现次序并不会影响类成员变量的初始化次序.
+
+不同编译单元内定义的non-local static对象的初始化次序
+函数内声明的的static对象称为local static对象,其他static对象称为non-local static对象,包括global对象/namespace作用域内/class内对象.
+如果某编译单元内的某个non-local static对象的初始化使用了另一编译单元内的某个non-local static对象,它所使用到的这个对象可能尚未被初始化.
