@@ -1,0 +1,20 @@
+13. Use objects to manage resources.
+
+将资源放进对象内,依赖C++会自动调用析构函数的机制,确保资源可以被即时释放.
+(1)获得资源后立刻放进管理对象内,即"资源取得时机便是初始化时机(Resource Acquisition Is Initialization;RAII)";
+(2)管理对象运用析构函数确保资源被释放.
+
+常用的RAII对象:
+A.std::auto_ptr可以被当做资源管理对象来使用:
+{
+    std::auto_ptr<Investment> pInv(createInvestment());
+    ...
+}
+为避免多个auto_ptr指向同一对象导致对象被删除多次,auto_ptr在copy构造或者通过copy赋值操作符复制时会变成null,复制所得的指针获得资源的唯一使用权.
+但如果容器要求其元素必须有正常的复制行为时,auto_ptr不能被使用.
+B.使用引用计数型智能指针(reference-counting smart pointer,RCSP),比如TR1的tr1::shared_ptr.
+C.Boost库中的boost::scoped_array和boost::shared_array.
+
+
+14. Thinking carefully about copying behavior in resource-managing classes.
+

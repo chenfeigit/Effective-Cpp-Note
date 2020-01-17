@@ -54,7 +54,42 @@ B.某个类的设计目的如果不是作为基类使用,或不是为了具备�
 同样在析构过程中,派生类对象首先执行派生类的析构函数,该对象中派生类成员变量被销毁,接着该对象被视作基类对象而执行基类析构函数.
 
 解决办法可以是,令派生类将必要的构造信息向上传递至基类构造函数.
- 
 
 
 10. Have assignment operators return a reference to *this.
+
+赋值操作应该返回一个*this的引用,包括=,+=,等等.即使操作符的参数类型不是该类的引用也应当返回*this.
+
+
+11. Handle assignment to self in operator=.
+
+别名(aliasing)可能带来自我赋值操作,比如
+a[i] = a[j];
+*px = *py;
+当赋值过程涉及将旧指针拷贝到新指针并释放旧指针时,可能出现错误或异常.比如:
+Widget& Widget::operator=(const Widget& rhs)
+{
+    delete pb;
+    pb = new Bitmap(*rhs.pb);
+    return *this;
+}
+
+解决方法:
+(1)添加证同测试(identity test),避免自我赋值操作(当new操作抛出异常时仍有可能出现错误);
+(2)避免在赋值pb所指东西之前删除pb,即保存一个旧指针的副本,在new操作之后再使用旧指针副本释放内存.
+Widget& Widget::operator=(const Widget& rhs)
+{
+    Bitmap* pOrig = pb;
+    pb = new Bitmap(*rhs.pb);
+    delete pOrig;
+    return *this;
+}
+(3)使用copy and swap.
+
+
+12. Copy all parts of an object.
+
+如果声明自己的copying函数(copy构造函数和copy assignment操作符),必须确保所有的成员变量都被拷贝.
+(1)复制所有成员变量;
+(2)当需要为派生类实现copying函数时,应该由派生类的copying函数调用相应的基类函数.
+(3)不该由copy assignment操作符调用copy构造函数(会构造一个重复的对象)或者由copy构造函数调用copy assignment操作符(对象必须先初始化而后才能被赋值).为减少代码冗余,可以考虑定义一个新的private函数供copying函数共同调用.
