@@ -56,4 +56,5 @@ B.某个类的设计目的如果不是作为基类使用,或不是为了具备�
 解决办法可以是,令派生类将必要的构造信息向上传递至基类构造函数.
  
 
-10. Have assignment operators return a reference to *this.
+
+10. Have assignment operators return a reference to *this.  
