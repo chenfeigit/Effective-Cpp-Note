@@ -21,5 +21,39 @@ public:
 (1)将其copy构造函数或copy assignment操作符声明为private并且不实现其定义.这种情况下当有人试图通过成员函数或友元函数调用该方法会得到linkage error.
 (2)继承一个Uncopyable类,该Uncopyable类当中声明copy构造函数或copy assignment操作符为private.当基类试图调用copy构造或赋值方法时,会首先调用基类对应方法,从而在编译期报告错误.
 
+
 7. Declare destructors virtual in polymorphic base classes.
 
+(1)当派生类对象经由一个基类指针被删除,并且该基类拥有非虚析构函数时,会仅调用基类的析构函数而不会调用派生类析构函数,造成派生对象内部继承仅自基类的数据被销毁.
+将基类的析构函数声明为virtual则可以避免这一问题.
+
+(2)应当仅对含有虚函数的类声明虚析构函数.因为虚函数会增加类对象在内存中的体积.
+
+(3)带有non-virtual析构函数的类不应当被继承.(大多数情况下它们并不期望自己作为基类被继承.)
+
+(4)你也可以将析构函数声明为纯虚函数,这将导致该类变为抽象类(不能被实例化).但你需要提供该纯虚析构函数的定义以避免linkage error.当调用析构函数时,最深层派生(most derived)的类的析构函数最先被调用,基类的析构函数最终会被调用.
+
+(5)虚析构函数只适用于具有多态性质的(polymorphic)基类,但并非所有基类的设计目的都是为了多态用途.多态基类的典型目的是,通过基类接口(指针)处理派生类对象.
+
+A.带多态性质的(polymorphic)基类应该声明一个virtual析构函数,如果class带有任何virtual函数,它就应该拥有一个virtual析构函数.
+B.某个类的设计目的如果不是作为基类使用,或不是为了具备多态性(polymorphically),就不应该声明virtual析构函数.
+
+
+8. Prevent exceptions from leaving destructors.
+
+(1)如果一个被析构函数调用的函数可能抛出异常,析构函数应当捕获任何异常,使它们不传播或结束程序.
+(2)如果调用者需要对某个操作函数运行期间抛出的异常做出反应,那么class应该提供一个普通函数(而非在析构函数中)执行该操作.
+
+考虑在vector容器中的某个类型的对象,它们每个对象在析构时抛出异常,这会导致同类型的多个异常同时存在,从而导致程序结束执行或者出现不明确行为.
+
+
+9. Never call virtual functions during construction or destruction.
+
+构造函数的调用次序:先基类,后派生类;析构函数的调用次序:先派生类,后基类.
+在派生类对象的基类构造期间,对象的类型是基类而不是派生类.如果此时调用virtual函数,编译器也只能调用到基类函数.此外,若使用运行期类型信息(runtime type information,例如dynamic_cast和typeid),也会将对象视作基类类型.
+同样在析构过程中,派生类对象首先执行派生类的析构函数,该对象中派生类成员变量被销毁,接着该对象被视作基类对象而执行基类析构函数.
+
+解决办法可以是,令派生类将必要的构造信息向上传递至基类构造函数.
+ 
+
+10. Have assignment operators return a reference to *this.
